@@ -3,38 +3,81 @@
 package main
 
 import (
-	"fmt"
+	"context"
+	"encoding/json"
 	"net/http"
 
-	"cloud.google.com/go/datastore"
+	"strings"
+
+	"google.golang.org/api/iterator"
 	"google.golang.org/appengine"
+	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
 )
 
-func main() {
-	http.HandleFunc("/api/v1", handle)
-	appengine.Main()
+func init() {
+	http.HandleFunc("/goapi/v1/po/", poHandler)
 }
 
-func handle(w http.ResponseWriter, r *http.Request) {
+func poHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := appengine.NewContext(r)
-	po := PurchaseOrder{
-		poID:       "Whatever",
-		prettyPoID: 1,
-		purchaser:  "Graham",
-		supplier:   "Crystal",
-		product:    "Rings",
-		price:      10.40,
+	log.Infof(ctx, "Setting up datastore client")
+	if r.Method == http.MethodGet {
+		log.Infof(ctx, "Setting up a new query for POs")
+		q := datastore.NewQuery("PurchaseOrder")
+		r.ParseForm()
+		email := r.FormValue("email")
+		if email != "" {
+			log.Infof(ctx, "Using poID: %s", email)
+			tokens := strings.Split(email, "@")
+			q = q.Filter("purchaser =", tokens[0])
+		}
+		q = q.BatchSize(5000)
+		log.Infof(ctx, "Executing query")
+		pos := getAllPurchaseOrders(ctx, q)
+		resp := map[string]interface{}{
+			"status": 200,
+			"data":   pos,
+		}
+		json.NewEncoder(w).Encode(resp)
 	}
-	ds, err := datastore.NewClient(ctx, "cdac-purchase-order-demo")
-	if err != nil {
-		// Blah blah error handling
-		log.Errorf(ctx, "Something went wrong!")
-	}
-
-	key := datastore.IncompleteKey("PurchaseOrder", nil)
-	if _, err := ds.Put(ctx, key, &po); err != nil {
-		log.Errorf(ctx, "Could not put new PurchaseOrder.")
-	}
-	fmt.Fprintln(w, "Hello, Crystal!")
+	return
 }
+
+func getAllPurchaseOrders(ctx context.Context, q *datastore.Query) []PurchaseOrder {
+	var pos []PurchaseOrder
+	log.Infof(ctx, "About to get POs")
+	for t := q.Run(ctx); ; {
+		var po PurchaseOrder
+		_, err := t.Next(&po)
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			// Handle error somehow. Skip it maybe?
+			break
+		}
+		po.CalculateIsAddressed()
+		pos = append(pos, po)
+	}
+	log.Infof(ctx, "Done getting POs, there are %d of them", len(pos))
+	return pos
+}
+
+//func createPo(ctx context.Context) (*datastore.Entity, error) {
+//	po := new(PurchaseOrder)
+//	po.PoID = "Whatever"
+//	po.PrettyPoID = 1
+//	po.Purchaser = "Graham"
+//	po.Supplier = "Crystal"
+//	po.Product = "Rings"
+//	po.Price = 10.40
+//
+//	key := datastore.NewIncompleteKey(ctx, "PurchaseOrder", nil)
+//	_, err := datastore.Put(ctx, key, po)
+//	if err != nil {
+//		log.Errorf(ctx, err.Error())
+//	}
+//
+//	return nil, nil
+//}

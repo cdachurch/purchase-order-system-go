@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PO Stuff</title>
+</head>
+<body>
+    <h4>Hello POs</h4>
+
+    <input type="text" id="purchaser" />
+    <button onclick="fetchIt()">Try to fetch for purchaser</button>
+
+    <div id="pos"></div>
+
+    <script type="application/javascript">
+        const inp = document.getElementById('purchaser');
+        const poDiv = document.getElementById('pos');
+
+        const fetchIt = () => {
+            poDiv.innerHTML = 'Loading...';
+            fetch(`/goapi/v1/po/?email=${inp.value}`)
+                .then(pos => pos.json())
+                .then(({data: pos}) => {
+                    poDiv.innerHTML = '';
+                    pos.forEach((po) => {
+                        const a = document.createElement('a');
+                        a.href = `https://cdac-demo-purchaseorder.appspot.com/purchase/${po.po_id}/`;
+                        a.target = '_blank';
+                        const t = document.createTextNode(po.po_id);
+                        a.appendChild(t);
+                        poDiv.appendChild(a);
+                        poDiv.appendChild(document.createElement('br'));
+                    });
+                })
+                .catch(e => console.log(e));
+        };
+    </script>
+</body>
+</html>
