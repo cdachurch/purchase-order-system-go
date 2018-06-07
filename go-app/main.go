@@ -21,12 +21,11 @@ func init() {
 
 func poHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := appengine.NewContext(r)
-	log.Infof(ctx, "Setting up datastore client")
 	if r.Method == http.MethodGet {
-		log.Infof(ctx, "Setting up a new query for POs")
-		q := datastore.NewQuery("PurchaseOrder")
 		r.ParseForm()
 		email := r.FormValue("email")
+		log.Infof(ctx, "Setting up a new query for POs")
+		q := datastore.NewQuery("PurchaseOrder")
 		if email != "" {
 			log.Infof(ctx, "Using poID: %s", email)
 			tokens := strings.Split(email, "@")
@@ -35,6 +34,7 @@ func poHandler(w http.ResponseWriter, r *http.Request) {
 		q = q.BatchSize(5000)
 		log.Infof(ctx, "Executing query")
 		pos := getAllPurchaseOrders(ctx, q)
+
 		resp := map[string]interface{}{
 			"status": 200,
 			"data":   pos,
@@ -55,6 +55,7 @@ func getAllPurchaseOrders(ctx context.Context, q *datastore.Query) []PurchaseOrd
 		}
 		if err != nil {
 			// Handle error somehow. Skip it maybe?
+			log.Infof(ctx, "Error received: %s", err.Error())
 			break
 		}
 		po.CalculateIsAddressed()
@@ -63,21 +64,3 @@ func getAllPurchaseOrders(ctx context.Context, q *datastore.Query) []PurchaseOrd
 	log.Infof(ctx, "Done getting POs, there are %d of them", len(pos))
 	return pos
 }
-
-//func createPo(ctx context.Context) (*datastore.Entity, error) {
-//	po := new(PurchaseOrder)
-//	po.PoID = "Whatever"
-//	po.PrettyPoID = 1
-//	po.Purchaser = "Graham"
-//	po.Supplier = "Crystal"
-//	po.Product = "Rings"
-//	po.Price = 10.40
-//
-//	key := datastore.NewIncompleteKey(ctx, "PurchaseOrder", nil)
-//	_, err := datastore.Put(ctx, key, po)
-//	if err != nil {
-//		log.Errorf(ctx, err.Error())
-//	}
-//
-//	return nil, nil
-//}
