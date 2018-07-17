@@ -81,7 +81,9 @@ func getAllPurchaseOrders(ctx context.Context, q *datastore.Query) []PurchaseOrd
 			log.Infof(ctx, "Error received: %s", err.Error())
 			break
 		}
+		// "Calculated fields"
 		po.CalculateIsAddressed()
+		po.FormatDates()
 		pos = append(pos, po)
 	}
 	log.Infof(ctx, "Done getting POs, there are %d of them", len(pos))
