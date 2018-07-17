@@ -19,6 +19,29 @@ func init() {
 	http.HandleFunc("/goapi/v1/po/", poHandler)
 }
 
+func shouldAttachEmail(email string) bool {
+	usersThatCanSeeAllPOs := []string{
+		"gdholtslander",
+		"gholtslander",
+		"smyhre",
+		"dwiebe",
+		"test@example.com",
+		"jheindle",
+		"rhoult",
+		"rsmith",
+	}
+
+	var userIsAdmin bool
+	for _, name := range usersThatCanSeeAllPOs {
+		if name == email {
+			userIsAdmin = true
+			break
+		}
+	}
+
+	return email != "" && !userIsAdmin
+}
+
 func poHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := appengine.NewContext(r)
 	if r.Method == http.MethodGet {
@@ -26,7 +49,7 @@ func poHandler(w http.ResponseWriter, r *http.Request) {
 		email := r.FormValue("email")
 		log.Infof(ctx, "Setting up a new query for POs")
 		q := datastore.NewQuery("PurchaseOrder")
-		if email != "" {
+		if shouldAttachEmail(email) {
 			log.Infof(ctx, "Using poID: %s", email)
 			tokens := strings.Split(email, "@")
 			q = q.Filter("purchaser =", tokens[0])
