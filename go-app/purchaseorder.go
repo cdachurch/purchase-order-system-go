@@ -1,6 +1,8 @@
 package main
 
-import "time"
+import (
+	"time"
+)
 
 type PurchaseOrder struct {
 	PoID           string    `json:"po_id" datastore:"po_id"`
@@ -35,13 +37,13 @@ func (po *PurchaseOrder) FormatDates() {
 	if time.Time.IsZero(po.Updated) {
 		po.UpdatedStr = ""
 	}
-	po.UpdatedStr = po.Updated.Format("2018-05-23")
-	if time.Time.IsZero(po.Created) {
+	po.UpdatedStr = po.Updated.Format("2006-01-02")
+	if po.Created.IsZero() {
 		po.CreatedStr = ""
 	}
-	po.CreatedStr = po.Updated.Format("2018-05-23")
+	po.CreatedStr = po.Created.Format("2006-01-02")
 	if time.Time.IsZero(po.Deleted) {
 		po.DeletedStr = ""
 	}
-	po.DeletedStr = po.Deleted.Format("2018-05-23")
+	po.DeletedStr = po.Deleted.Format("2006-01-02")
 }

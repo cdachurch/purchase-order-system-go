@@ -5,22 +5,20 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
+	"os"
 
 	"strings"
 
 	"google.golang.org/api/iterator"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/log"
 )
 
-func init() {
-	http.HandleFunc("/goapi/v1/po/", poHandler)
-}
-
-func shouldAttachEmail(email string) bool {
-	usersThatCanSeeAllPOs := []string{
+var (
+	usersThatCanSeeAllPOs = []string{
 		"gdholtslander",
 		"gholtslander",
 		"smyhre",
@@ -30,7 +28,22 @@ func shouldAttachEmail(email string) bool {
 		"rhoult",
 		"rsmith",
 	}
+)
 
+func main() {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+		log.Printf("Defaulting to port %s", port)
+	}
+
+	log.Printf("Listening on port %s", port)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/goapi/v1/po/", poHandler)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), mux))
+}
+
+func shouldAttachEmail(email string) bool {
 	var userIsAdmin bool
 	for _, name := range usersThatCanSeeAllPOs {
 		if name == email {
@@ -45,31 +58,39 @@ func shouldAttachEmail(email string) bool {
 func poHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := appengine.NewContext(r)
 	if r.Method == http.MethodGet {
-		r.ParseForm()
+		err := r.ParseForm()
+		if err != nil {
+			log.Printf("Error parsing form: %v", err)
+		}
 		email := r.FormValue("email")
-		log.Infof(ctx, "Setting up a new query for POs")
+		log.Printf("Setting up a new query for POs")
 		q := datastore.NewQuery("PurchaseOrder")
 		if shouldAttachEmail(email) {
-			log.Infof(ctx, "Using poID: %s", email)
+			log.Printf("Using poID: %s", email)
 			tokens := strings.Split(email, "@")
 			q = q.Filter("purchaser =", tokens[0])
 		}
 		q = q.BatchSize(5000)
-		log.Infof(ctx, "Executing query")
+		log.Printf("Executing query")
 		pos := getAllPurchaseOrders(ctx, q)
 
 		resp := map[string]interface{}{
 			"status": 200,
 			"data":   pos,
 		}
-		json.NewEncoder(w).Encode(resp)
+		err = json.NewEncoder(w).Encode(resp)
+		if err != nil {
+			log.Printf("Error encoding response: %v", err)
+		}
 	}
+	// Hitting us with an unsupported method
+	w.WriteHeader(405)
 	return
 }
 
 func getAllPurchaseOrders(ctx context.Context, q *datastore.Query) []PurchaseOrder {
 	var pos []PurchaseOrder
-	log.Infof(ctx, "About to get POs")
+	log.Printf("About to get POs")
 	for t := q.Run(ctx); ; {
 		var po PurchaseOrder
 		_, err := t.Next(&po)
@@ -78,7 +99,7 @@ func getAllPurchaseOrders(ctx context.Context, q *datastore.Query) []PurchaseOrd
 		}
 		if err != nil {
 			// Handle error somehow. Skip it maybe?
-			log.Infof(ctx, "Error received: %s", err.Error())
+			log.Printf("Error received: %s", err.Error())
 			break
 		}
 		// "Calculated fields"
@@ -86,6 +107,6 @@ func getAllPurchaseOrders(ctx context.Context, q *datastore.Query) []PurchaseOrd
 		po.FormatDates()
 		pos = append(pos, po)
 	}
-	log.Infof(ctx, "Done getting POs, there are %d of them", len(pos))
+	log.Printf("Done getting POs, there are %d of them", len(pos))
 	return pos
 }
