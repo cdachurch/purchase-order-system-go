@@ -12,9 +12,8 @@ import (
 
 	"strings"
 
+	"cloud.google.com/go/datastore"
 	"google.golang.org/api/iterator"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/datastore"
 )
 
 var (
@@ -31,15 +30,24 @@ var (
 )
 
 func main() {
+	ctx := context.Background()
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 		log.Printf("Defaulting to port %s", port)
 	}
 
-	log.Printf("Listening on port %s", port)
+	dsClient, err := datastore.NewClient(ctx, "cdac-purchaseorder")
+	if err != nil {
+		log.Printf("Error making datastore client: %v", err)
+		return
+	}
 	mux := http.NewServeMux()
-	mux.HandleFunc("/goapi/v1/po/", poHandler)
+	mux.HandleFunc("/goapi/v1/po/", func(w http.ResponseWriter, r *http.Request) {
+		req := r.WithContext(ctx)
+		poHandler(w, req, dsClient)
+	})
+	log.Printf("Listening on port %s", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), mux))
 }
 
@@ -55,8 +63,8 @@ func shouldAttachEmail(email string) bool {
 	return email != "" && !userIsAdmin
 }
 
-func poHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := appengine.NewContext(r)
+func poHandler(w http.ResponseWriter, r *http.Request, dsClient *datastore.Client) {
+	ctx := r.Context()
 	if r.Method == http.MethodGet {
 		err := r.ParseForm()
 		if err != nil {
@@ -70,9 +78,9 @@ func poHandler(w http.ResponseWriter, r *http.Request) {
 			tokens := strings.Split(email, "@")
 			q = q.Filter("purchaser =", tokens[0])
 		}
-		q = q.BatchSize(5000)
+		q = q.Limit(5000)
 		log.Printf("Executing query")
-		pos := getAllPurchaseOrders(ctx, q)
+		pos := getAllPurchaseOrders(ctx, dsClient, q)
 
 		resp := map[string]interface{}{
 			"status": 200,
@@ -88,10 +96,10 @@ func poHandler(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func getAllPurchaseOrders(ctx context.Context, q *datastore.Query) []PurchaseOrder {
+func getAllPurchaseOrders(ctx context.Context, dsClient *datastore.Client, q *datastore.Query) []PurchaseOrder {
 	var pos []PurchaseOrder
 	log.Printf("About to get POs")
-	for t := q.Run(ctx); ; {
+	for t := dsClient.Run(ctx, q); ; {
 		var po PurchaseOrder
 		_, err := t.Next(&po)
 		if err == iterator.Done {
