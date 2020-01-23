@@ -1,7 +1,20 @@
-package main
+package po
 
 import (
 	"time"
+)
+
+var (
+	usersThatCanSeeAllPOs = []string{
+		"gdholtslander",
+		"gholtslander",
+		"smyhre",
+		"dwiebe",
+		"test@example.com",
+		"jheindle",
+		"rhoult",
+		"rsmith",
+	}
 )
 
 type PurchaseOrder struct {
