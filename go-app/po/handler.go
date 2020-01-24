@@ -8,13 +8,13 @@ import (
 	"cloud.google.com/go/datastore"
 )
 
-// PurchaseOrderHandler defines something that can get purchase orders
-type PurchaseOrderHandler interface {
+// PurchaseOrderGetter defines something that can get purchase orders
+type PurchaseOrderGetter interface {
 	GetPurchaseOrders(ctx context.Context, email string) []PurchaseOrder
 }
 
-// NewPurchaseOrderHandler returns a PurchaseOrderHandler
-func NewPurchaseOrderHandler(dsClient *datastore.Client) PurchaseOrderHandler {
+// NewPurchaseOrderGetter returns a PurchaseOrderGetter
+func NewPurchaseOrderGetter(dsClient *datastore.Client) PurchaseOrderGetter {
 	return &poHandler{dsClient: dsClient}
 }
 

@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>PO Stuff</title>
 </head>
+
 <body>
     <h4>Hello POs</h4>
 
@@ -20,7 +22,7 @@
             poDiv.innerHTML = 'Loading...';
             fetch(`/goapi/v1/po/?email=${inp.value}`)
                 .then(pos => pos.json())
-                .then(({data: pos}) => {
+                .then(({ data: pos }) => {
                     poDiv.innerHTML = '';
                     pos.forEach((po) => {
                         const a = document.createElement('a');
@@ -36,4 +38,5 @@
         };
     </script>
 </body>
+
 </html>

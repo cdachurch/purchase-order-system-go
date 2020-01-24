@@ -4,12 +4,13 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	poapis "po/go-app/api"
 	"po/go-app/po"
+	"strings"
 
 	"cloud.google.com/go/datastore"
 )
@@ -19,45 +20,29 @@ func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
-		log.Printf("Defaulting to port %s", port)
+		fmt.Printf("Defaulting to port %s", port)
 	}
 
-	dsClient, err := datastore.NewClient(ctx, "cdac-purchaseorder")
+	dsClient, err := datastore.NewClient(ctx, getAppIDForDatastore())
 	if err != nil {
-		log.Printf("Error making datastore client: %v", err)
+		fmt.Printf("Error making datastore client: %v", err)
 		return
 	}
-	handler := po.NewPurchaseOrderHandler(dsClient)
+
+	handler := po.NewPurchaseOrderGetter(dsClient)
+	server := poapis.NewServer(handler)
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/goapi/v1/po/", func(w http.ResponseWriter, r *http.Request) {
 		req := r.WithContext(ctx)
-		poHandler(w, req, handler)
+		server.GetPurchaseOrders(w, req)
 	})
-	log.Printf("Listening on port %s", port)
+	fmt.Printf("Listening on port %s", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), mux))
 }
 
-func poHandler(w http.ResponseWriter, r *http.Request, handler po.PurchaseOrderHandler) {
-	ctx := r.Context()
-	if r.Method == http.MethodGet {
-		err := r.ParseForm()
-		if err != nil {
-			log.Printf("Error parsing form: %v", err)
-		}
-		email := r.FormValue("email")
-
-		pos := handler.GetPurchaseOrders(ctx, email)
-
-		resp := map[string]interface{}{
-			"status": 200,
-			"data":   pos,
-		}
-		err = json.NewEncoder(w).Encode(resp)
-		if err != nil {
-			log.Printf("Error encoding response: %v", err)
-		}
-	}
-	// Hitting us with an unsupported method
-	w.WriteHeader(405)
-	return
+// Should be cdac-demo-purchaseorder for demo and cdac-purchaseorder for production
+func getAppIDForDatastore() string {
+	splitApp := strings.Split(os.Getenv("GAE_APPLICATION"), "~")
+	return splitApp[1]
 }
