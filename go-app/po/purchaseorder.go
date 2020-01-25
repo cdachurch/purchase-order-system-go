@@ -1,9 +1,24 @@
-package main
+package po
 
 import (
 	"time"
 )
 
+var (
+	usersThatCanSeeAllPOs = []string{
+		"gdholtslander",
+		"gholtslander",
+		"smyhre",
+		"dwiebe",
+		"test@example.com",
+		"jheindle",
+		"rhoult",
+		"rsmith",
+	}
+)
+
+// PurchaseOrder represents a purchase order in the system.
+// These are made by users and approved by admins.
 type PurchaseOrder struct {
 	PoID           string    `json:"po_id" datastore:"po_id"`
 	PrettyPoID     int       `json:"pretty_po_id" datastore:"pretty_po_id"`
@@ -27,13 +42,13 @@ type PurchaseOrder struct {
 	DeletedStr     string    `json:"deleted_date"`
 }
 
-// CalculateIsAddressed will just set IsAddressed to what it already is if it is set, or it will set it by computation
-func (po *PurchaseOrder) CalculateIsAddressed() {
+// calculateIsAddressed will just set IsAddressed to what it already is if it is set, or it will set it by computation
+func (po *PurchaseOrder) calculateIsAddressed() {
 	isAddressed := po.IsAddressed || (po.IsApproved || po.IsCancelled || po.IsDenied)
 	po.IsAddressed = isAddressed
 }
 
-func (po *PurchaseOrder) FormatDates() {
+func (po *PurchaseOrder) formatDates() {
 	if time.Time.IsZero(po.Updated) {
 		po.UpdatedStr = ""
 	}
