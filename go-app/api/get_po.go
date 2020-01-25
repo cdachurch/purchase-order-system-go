@@ -21,6 +21,7 @@ func (s *poAPIServer) GetPurchaseOrders(w http.ResponseWriter, r *http.Request) 
 		pos, err := s.poGetter.GetPurchaseOrders(ctx, email)
 
 		if err != nil {
+			w.WriteHeader(400)
 			resp := map[string]interface{}{
 				"status": 400,
 				"data":   err.Error(),
