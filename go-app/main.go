@@ -33,10 +33,7 @@ func main() {
 	server := poapis.NewServer(handler)
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/goapi/v1/po/", func(w http.ResponseWriter, r *http.Request) {
-		req := r.WithContext(ctx)
-		server.GetPurchaseOrders(w, req)
-	})
+	mux.HandleFunc("/goapi/v1/po/", addContext(ctx, server.GetPurchaseOrders))
 	log.Printf("Listening on port %s", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), mux))
 }
@@ -45,4 +42,11 @@ func main() {
 func getAppIDForDatastore() string {
 	splitApp := strings.Split(os.Getenv("GAE_APPLICATION"), "~")
 	return splitApp[1]
+}
+
+func addContext(ctx context.Context, fn http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		req := r.WithContext(ctx)
+		fn(w, req)
+	}
 }
