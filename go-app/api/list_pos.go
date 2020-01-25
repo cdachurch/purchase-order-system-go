@@ -33,10 +33,11 @@ func (s *poAPIServer) ListPurchaseOrders(w http.ResponseWriter, r *http.Request)
 	}
 
 	resp := map[string]interface{}{
-		"status":       200,
-		"data":         response.POs,
-		"draw":         draw,
-		"recordsTotal": response.Total,
+		"status":          200,
+		"data":            response.POs,
+		"draw":            draw,
+		"recordsTotal":    response.Total,
+		"recordsFiltered": response.Total,
 	}
 	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
