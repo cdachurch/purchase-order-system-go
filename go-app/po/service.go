@@ -3,7 +3,6 @@ package po
 import (
 	"context"
 	"errors"
-	"log"
 
 	"cloud.google.com/go/datastore"
 )
@@ -30,7 +29,7 @@ func (p *poService) GetPurchaseOrders(ctx context.Context, email string) ([]Purc
 	if !shouldAttachEmail(email) {
 		email = ""
 	}
-	log.Printf("Executing query")
+
 	return p.getAllPurchaseOrders(ctx, email), nil
 }
 
