@@ -8,7 +8,7 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-func (p *poHandler) getAllPurchaseOrders(ctx context.Context, q *datastore.Query) []PurchaseOrder {
+func (p *poService) getAllPurchaseOrders(ctx context.Context, q *datastore.Query) []PurchaseOrder {
 	var pos []PurchaseOrder
 	log.Printf("About to get POs")
 	for t := p.dsClient.Run(ctx, q); ; {

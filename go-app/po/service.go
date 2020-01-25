@@ -15,14 +15,14 @@ type PurchaseOrderGetter interface {
 
 // NewPurchaseOrderGetter returns a PurchaseOrderGetter
 func NewPurchaseOrderGetter(dsClient *datastore.Client) PurchaseOrderGetter {
-	return &poHandler{dsClient: dsClient}
+	return &poService{dsClient: dsClient}
 }
 
-type poHandler struct {
+type poService struct {
 	dsClient *datastore.Client
 }
 
-func (p *poHandler) GetPurchaseOrders(ctx context.Context, email string) []PurchaseOrder {
+func (p *poService) GetPurchaseOrders(ctx context.Context, email string) []PurchaseOrder {
 	log.Printf("Setting up a new query for POs")
 	q := datastore.NewQuery("PurchaseOrder")
 	if shouldAttachEmail(email) {
