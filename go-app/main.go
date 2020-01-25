@@ -20,12 +20,12 @@ func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
-		fmt.Printf("Defaulting to port %s", port)
+		log.Printf("Defaulting to port %s", port)
 	}
 
 	dsClient, err := datastore.NewClient(ctx, getAppIDForDatastore())
 	if err != nil {
-		fmt.Printf("Error making datastore client: %v", err)
+		log.Printf("Error making datastore client: %v", err)
 		return
 	}
 
@@ -37,7 +37,7 @@ func main() {
 		req := r.WithContext(ctx)
 		server.GetPurchaseOrders(w, req)
 	})
-	fmt.Printf("Listening on port %s", port)
+	log.Printf("Listening on port %s", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), mux))
 }
 
