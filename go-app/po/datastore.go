@@ -23,8 +23,8 @@ func (p *poHandler) getAllPurchaseOrders(ctx context.Context, q *datastore.Query
 			break
 		}
 		// "Calculated fields"
-		po.CalculateIsAddressed()
-		po.FormatDates()
+		po.calculateIsAddressed()
+		po.formatDates()
 		pos = append(pos, po)
 	}
 	log.Printf("Done getting POs, there are %d of them", len(pos))
