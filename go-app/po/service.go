@@ -64,20 +64,36 @@ func (p *poService) ListPurchaseOrders(ctx context.Context, email string, start,
 		tokens := strings.Split(email, "@")
 		q = q.Filter("purchaser =", tokens[0])
 	}
+
 	eg, egCtx := errgroup.WithContext(ctx)
 	resp := &PagedResponse{}
-	// eg.Go(func() error {
-	// 	total, err := p.dsClient.Count(egCtx, q.KeysOnly())
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	resp.Total = total
-	// 	return nil
-	// })
+	// Get the "total" count
+	eg.Go(func() error {
+		var q2 *datastore.Query
+		if email == "" {
+			// If they're getting all POs, look up the first pretty po id and set to that. Close enough!
+			q2 = datastore.NewQuery("PurchaseOrder").Limit(1).Order("-pretty_po_id")
+			po, err := p.getPOsFromQuery(egCtx, q2)
+			if err != nil {
+				return err
+			}
+			resp.Total = po[0].PrettyPoID
+			return nil
+		}
+		// Otherwise, get the count of their total without the limit or offset to get all.
+		q2 = q
+		total, err := p.dsClient.Count(egCtx, q2)
+		if err != nil {
+			return err
+		}
+		resp.Total = total
+		return nil
+	})
+
+	q = q.Limit(length).Offset(start).Order("-pretty_po_id")
 
 	eg.Go(func() error {
-		q2 := q.Limit(length).Offset(start).Order("-pretty_po_id")
-		pos, err := p.getPOsFromQuery(egCtx, q2)
+		pos, err := p.getPOsFromQuery(egCtx, q)
 		if err != nil {
 			return err
 		}
@@ -87,6 +103,5 @@ func (p *poService) ListPurchaseOrders(ctx context.Context, email string, start,
 
 	eg.Wait()
 
-	resp.Total = 2485
 	return resp, nil
 }
