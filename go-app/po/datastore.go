@@ -15,7 +15,6 @@ func (p *poService) getAllPurchaseOrders(ctx context.Context, email string) ([]P
 		tokens := strings.Split(email, "@")
 		q = q.Filter("purchaser =", tokens[0])
 	}
-	q = q.Limit(5000)
 
 	log.Printf("About to get POs")
 	pos, err := p.getPOsFromQuery(ctx, q)

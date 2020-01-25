@@ -3,6 +3,7 @@ package po
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
 	"cloud.google.com/go/datastore"
@@ -75,7 +76,7 @@ func (p *poService) ListPurchaseOrders(ctx context.Context, email string, start,
 			q2 = datastore.NewQuery("PurchaseOrder").Limit(1).Order("-pretty_po_id")
 			po, err := p.getPOsFromQuery(egCtx, q2)
 			if err != nil {
-				return err
+				return fmt.Errorf("error getting count of pos: %v", err)
 			}
 			resp.Total = po[0].PrettyPoID
 			return nil
@@ -84,7 +85,7 @@ func (p *poService) ListPurchaseOrders(ctx context.Context, email string, start,
 		q2 = q
 		total, err := p.dsClient.Count(egCtx, q2)
 		if err != nil {
-			return err
+			return fmt.Errorf("error getting count of pos for individual: %v", err)
 		}
 		resp.Total = total
 		return nil
@@ -95,7 +96,7 @@ func (p *poService) ListPurchaseOrders(ctx context.Context, email string, start,
 	eg.Go(func() error {
 		pos, err := p.getPOsFromQuery(egCtx, q)
 		if err != nil {
-			return err
+			return fmt.Errorf("error getting pos for individual: %v", err)
 		}
 		resp.POs = pos
 		return nil
