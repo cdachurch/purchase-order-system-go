@@ -18,7 +18,19 @@ func (s *poAPIServer) GetPurchaseOrders(w http.ResponseWriter, r *http.Request) 
 		}
 		email := r.FormValue("email")
 
-		pos := s.poGetter.GetPurchaseOrders(ctx, email)
+		pos, err := s.poGetter.GetPurchaseOrders(ctx, email)
+
+		if err != nil {
+			resp := map[string]interface{}{
+				"status": 400,
+				"data":   err.Error(),
+			}
+			err = json.NewEncoder(w).Encode(resp)
+			if err != nil {
+				log.Printf("Error encoding response: %v", err)
+			}
+			return
+		}
 
 		resp := map[string]interface{}{
 			"status": 200,

@@ -3,13 +3,21 @@ package po
 import (
 	"context"
 	"log"
+	"strings"
 
 	"cloud.google.com/go/datastore"
 	"google.golang.org/api/iterator"
 )
 
-func (p *poService) getAllPurchaseOrders(ctx context.Context, q *datastore.Query) []PurchaseOrder {
+func (p *poService) getAllPurchaseOrders(ctx context.Context, email string) []PurchaseOrder {
 	var pos []PurchaseOrder
+	q := datastore.NewQuery("PurchaseOrder")
+	if email != "" {
+		tokens := strings.Split(email, "@")
+		q = q.Filter("purchaser =", tokens[0])
+	}
+	q = q.Limit(5000)
+
 	log.Printf("About to get POs")
 	for t := p.dsClient.Run(ctx, q); ; {
 		var po PurchaseOrder
