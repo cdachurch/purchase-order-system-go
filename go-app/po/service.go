@@ -3,6 +3,7 @@ package po
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"cloud.google.com/go/datastore"
 )
@@ -10,6 +11,7 @@ import (
 // PurchaseOrderGetter defines something that can get purchase orders
 type PurchaseOrderGetter interface {
 	GetPurchaseOrders(ctx context.Context, email string) ([]PurchaseOrder, error)
+	ListPurchaseOrders(ctx context.Context, email string, start, length int) (*PagedResponse, error)
 }
 
 // NewPurchaseOrderGetter returns a PurchaseOrderGetter
@@ -30,7 +32,7 @@ func (p *poService) GetPurchaseOrders(ctx context.Context, email string) ([]Purc
 		email = ""
 	}
 
-	return p.getAllPurchaseOrders(ctx, email), nil
+	return p.getAllPurchaseOrders(ctx, email)
 }
 
 func shouldAttachEmail(email string) bool {
@@ -43,4 +45,31 @@ func shouldAttachEmail(email string) bool {
 	}
 
 	return email != "" && !userIsAdmin
+}
+
+// PagedResponse represents a response from the server - it includes data as well as total rows, etc.
+type PagedResponse struct {
+	POs   []PurchaseOrder
+	Total int64
+}
+
+func (p *poService) ListPurchaseOrders(ctx context.Context, email string, start, length int) (*PagedResponse, error) {
+	q := datastore.NewQuery("PurchaseOrder").Limit(length).Offset(start)
+	if !shouldAttachEmail(email) {
+		email = ""
+	}
+
+	if email != "" {
+		tokens := strings.Split(email, "@")
+		q = q.Filter("purchaser =", tokens[0])
+	}
+	pos, err := p.getPOsFromQuery(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+
+	return &PagedResponse{
+		POs:   pos,
+		Total: 27,
+	}, nil
 }

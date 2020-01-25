@@ -12,6 +12,7 @@ type poAPIServer struct {
 // APIServer defines an interface through which an http server can handle requests for POs
 type APIServer interface {
 	GetPurchaseOrders(w http.ResponseWriter, r *http.Request)
+	ListPurchaseOrders(w http.ResponseWriter, r *http.Request)
 }
 
 func NewServer(getter po.PurchaseOrderGetter) APIServer {

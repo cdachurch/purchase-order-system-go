@@ -11,31 +11,24 @@ import (
 // and the user is an administrator, they'll see all the pos they have access to.
 func (s *poAPIServer) GetPurchaseOrders(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	if r.Method == http.MethodGet {
-		err := r.ParseForm()
-		if err != nil {
-			log.Printf("Error parsing form: %v", err)
-		}
-		email := r.FormValue("email")
+	if r.Method != http.MethodGet {
+		// Hitting us with an unsupported method
+		w.WriteHeader(405)
+		return
+	}
+	err := r.ParseForm()
+	if err != nil {
+		log.Printf("Error parsing form: %v", err)
+	}
+	email := r.FormValue("email")
 
-		pos, err := s.poGetter.GetPurchaseOrders(ctx, email)
+	pos, err := s.poGetter.GetPurchaseOrders(ctx, email)
 
-		if err != nil {
-			w.WriteHeader(400)
-			resp := map[string]interface{}{
-				"status": 400,
-				"data":   err.Error(),
-			}
-			err = json.NewEncoder(w).Encode(resp)
-			if err != nil {
-				log.Printf("Error encoding response: %v", err)
-			}
-			return
-		}
-
+	if err != nil {
+		w.WriteHeader(400)
 		resp := map[string]interface{}{
-			"status": 200,
-			"data":   pos,
+			"status": 400,
+			"error":  err.Error(),
 		}
 		err = json.NewEncoder(w).Encode(resp)
 		if err != nil {
@@ -43,7 +36,14 @@ func (s *poAPIServer) GetPurchaseOrders(w http.ResponseWriter, r *http.Request) 
 		}
 		return
 	}
-	// Hitting us with an unsupported method
-	w.WriteHeader(405)
+
+	resp := map[string]interface{}{
+		"status": 200,
+		"data":   pos,
+	}
+	err = json.NewEncoder(w).Encode(resp)
+	if err != nil {
+		log.Printf("Error encoding response: %v", err)
+	}
 	return
 }

@@ -33,6 +33,7 @@ func main() {
 	server := poapis.NewServer(handler)
 
 	mux := http.NewServeMux()
+	mux.HandleFunc("/goapi/v1/po/list/", addContext(ctx, server.ListPurchaseOrders))
 	mux.HandleFunc("/goapi/v1/po/", addContext(ctx, server.GetPurchaseOrders))
 	log.Printf("Listening on port %s", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), mux))

@@ -9,8 +9,7 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-func (p *poService) getAllPurchaseOrders(ctx context.Context, email string) []PurchaseOrder {
-	var pos []PurchaseOrder
+func (p *poService) getAllPurchaseOrders(ctx context.Context, email string) ([]PurchaseOrder, error) {
 	q := datastore.NewQuery("PurchaseOrder")
 	if email != "" {
 		tokens := strings.Split(email, "@")
@@ -19,6 +18,14 @@ func (p *poService) getAllPurchaseOrders(ctx context.Context, email string) []Pu
 	q = q.Limit(5000)
 
 	log.Printf("About to get POs")
+	pos, err := p.getPOsFromQuery(ctx, q)
+	log.Printf("Done getting POs, there are %d of them", len(pos))
+	return pos, err
+}
+
+// Exhaust a query and return all the purchase orders attained.
+func (p *poService) getPOsFromQuery(ctx context.Context, q *datastore.Query) ([]PurchaseOrder, error) {
+	var pos []PurchaseOrder
 	for t := p.dsClient.Run(ctx, q); ; {
 		var po PurchaseOrder
 		_, err := t.Next(&po)
@@ -28,13 +35,12 @@ func (p *poService) getAllPurchaseOrders(ctx context.Context, email string) []Pu
 		if err != nil {
 			// Handle error somehow. Skip it maybe?
 			log.Printf("Error received: %s", err.Error())
-			break
+			return nil, err
 		}
 		// "Calculated fields"
 		po.calculateIsAddressed()
 		po.formatDates()
 		pos = append(pos, po)
 	}
-	log.Printf("Done getting POs, there are %d of them", len(pos))
-	return pos
+	return pos, nil
 }
