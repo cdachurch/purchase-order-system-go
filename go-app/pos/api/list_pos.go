@@ -25,10 +25,10 @@ func (s *poAPIServer) ListPurchaseOrders(w http.ResponseWriter, r *http.Request)
 	draw, err := strconv.Atoi(r.FormValue("draw"))
 	start, err := strconv.Atoi(r.FormValue("start"))
 	length, err := strconv.Atoi(r.FormValue("length"))
-	response, err := s.poGetter.ListPurchaseOrders(ctx, email, start, length)
+	response, err := s.poService.ListPurchaseOrders(ctx, email, start, length)
 	if err != nil {
-		w.WriteHeader(500)
-		fmt.Fprintf(w, "something bad happened: %v", err)
+		w.WriteHeader(400)
+		fmt.Fprint(w, err)
 		return
 	}
 

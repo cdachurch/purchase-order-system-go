@@ -1,4 +1,4 @@
-package po
+package pos
 
 import (
 	"time"
@@ -16,6 +16,19 @@ var (
 		"rsmith",
 	}
 )
+
+// ShouldAttachEmail will be true if the email passed in is not an admin's email.
+func ShouldAttachEmail(email string) bool {
+	var userIsAdmin bool
+	for _, name := range usersThatCanSeeAllPOs {
+		if name == email {
+			userIsAdmin = true
+			break
+		}
+	}
+
+	return email != "" && !userIsAdmin
+}
 
 // PurchaseOrder represents a purchase order in the system.
 // These are made by users and approved by admins.
@@ -42,13 +55,13 @@ type PurchaseOrder struct {
 	DeletedStr     string    `json:"deleted_date"`
 }
 
-// calculateIsAddressed will just set IsAddressed to what it already is if it is set, or it will set it by computation
-func (po *PurchaseOrder) calculateIsAddressed() {
+// CalculateIsAddressed will just set IsAddressed to what it already is if it is set, or it will set it by computation
+func (po *PurchaseOrder) CalculateIsAddressed() {
 	isAddressed := po.IsAddressed || (po.IsApproved || po.IsCancelled || po.IsDenied)
 	po.IsAddressed = isAddressed
 }
 
-func (po *PurchaseOrder) formatDates() {
+func (po *PurchaseOrder) FormatDates() {
 	if time.Time.IsZero(po.Updated) {
 		po.UpdatedStr = ""
 	}

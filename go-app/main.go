@@ -8,9 +8,11 @@ import (
 	"log"
 	"net/http"
 	"os"
-	poapis "po/go-app/api"
-	"po/go-app/po"
 	"strings"
+
+	poapis "po/go-app/pos/api"
+	porepository "po/go-app/pos/repository"
+	poservice "po/go-app/pos/service"
 
 	"cloud.google.com/go/datastore"
 )
@@ -23,14 +25,15 @@ func main() {
 		log.Printf("Defaulting to port %s", port)
 	}
 
-	dsClient, err := datastore.NewClient(ctx, getAppIDForDatastore())
+	dsClient, err := datastore.NewClient(ctx, appID())
 	if err != nil {
 		log.Printf("Error making datastore client: %v", err)
 		return
 	}
 
-	handler := po.NewPurchaseOrderGetter(dsClient)
-	server := poapis.NewServer(handler)
+	repo := porepository.New(dsClient)
+	service := poservice.New(repo)
+	server := poapis.NewServer(service)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/goapi/v1/po/list/", addContext(ctx, server.ListPurchaseOrders))
@@ -40,7 +43,7 @@ func main() {
 }
 
 // Should be cdac-demo-purchaseorder for demo and cdac-purchaseorder for production
-func getAppIDForDatastore() string {
+func appID() string {
 	splitApp := strings.Split(os.Getenv("GAE_APPLICATION"), "~")
 	return splitApp[1]
 }
