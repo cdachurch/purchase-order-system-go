@@ -4,11 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"po/go-app/pos"
 )
 
 // New returns a PurchaseOrderGetter
-func New(poRepo porepository.Repository) pos.PurchaseOrderGetter {
+func New(poRepo pos.PurchaseOrderGetter) pos.PurchaseOrderGetter {
 	// dsClient *datastore.Client
 	return &poService{poRepo: poRepo}
 }

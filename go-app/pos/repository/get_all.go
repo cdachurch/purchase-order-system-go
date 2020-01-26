@@ -8,7 +8,6 @@ import (
 	"po/go-app/pos"
 
 	"cloud.google.com/go/datastore"
-	"google.golang.org/api/iterator"
 )
 
 func (p *poRepository) GetPurchaseOrders(ctx context.Context, email string) ([]pos.PurchaseOrder, error) {
