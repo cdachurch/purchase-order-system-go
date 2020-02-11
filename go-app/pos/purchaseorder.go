@@ -61,6 +61,7 @@ func (po *PurchaseOrder) CalculateIsAddressed() {
 	po.IsAddressed = isAddressed
 }
 
+// FormatDates takes the time.Times on the model and formats them in 2006-01-02 format.
 func (po *PurchaseOrder) FormatDates() {
 	if time.Time.IsZero(po.Updated) {
 		po.UpdatedStr = ""
