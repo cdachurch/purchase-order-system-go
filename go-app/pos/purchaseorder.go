@@ -7,6 +7,8 @@ import (
 var (
 	usersThatCanSeeAllPOs = []string{
 		"smyhre",
+		"gholtslander",
+		"gdholtslander",
 		"pmorgun",
 		"dwiebe",
 		"test@example.com",
