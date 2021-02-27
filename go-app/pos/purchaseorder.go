@@ -6,14 +6,10 @@ import (
 
 var (
 	usersThatCanSeeAllPOs = []string{
-		"gdholtslander",
-		"gholtslander",
 		"smyhre",
+		"pmorgun",
 		"dwiebe",
 		"test@example.com",
-		"jheindle",
-		"rhoult",
-		"rsmith",
 	}
 )
 
