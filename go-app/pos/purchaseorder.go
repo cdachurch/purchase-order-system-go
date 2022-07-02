@@ -5,13 +5,14 @@ import (
 )
 
 var (
+	// TODO: This should come from an env var someday (then we can change these without deploying code)
 	usersThatCanSeeAllPOs = []string{
 		"smyhre",
-		"gholtslander",
-		"gdholtslander",
-		"pmorgun",
+		// "gholtslander",
+		// "gdholtslander",
+		"agagne",
 		"dwiebe",
-		"test@example.com",
+		// "test@example.com",
 	}
 )
 
