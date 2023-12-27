@@ -1,10 +1,10 @@
-runtime: go113
+runtime: go121
 service: go
 
 handlers:
-- url: /
-  static_files: index.html
-  upload: index.html
+  - url: /
+    static_files: index.html
+    upload: index.html
 
-- url: /.*
-  script: auto
+  - url: /.*
+    script: auto
