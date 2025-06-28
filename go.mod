@@ -1,6 +1,6 @@
 module po
 
-go 1.21
+go 1.23
 
 require (
 	cloud.google.com/go/datastore v1.0.0

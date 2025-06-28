@@ -45,5 +45,4 @@ func (s *poAPIServer) GetPurchaseOrders(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		log.Printf("Error encoding response: %v", err)
 	}
-	return
 }

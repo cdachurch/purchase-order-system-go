@@ -1,4 +1,4 @@
-runtime: go121
+runtime: go123
 service: go
 
 handlers:
