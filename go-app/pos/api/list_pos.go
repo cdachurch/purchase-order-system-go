@@ -31,25 +31,13 @@ func (s *poAPIServer) ListPurchaseOrders(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	email := r.FormValue("email")
-	draw, err := strconv.Atoi(r.FormValue("draw"))
-	if err != nil {
-		w.WriteHeader(400)
-		fmt.Fprint(w, err)
-		return
-	}
-	start, err := strconv.Atoi(r.FormValue("start"))
-	if err != nil {
-		w.WriteHeader(400)
-		fmt.Fprint(w, err)
-		return
-	}
 	length, err := strconv.Atoi(r.FormValue("length"))
 	if err != nil {
 		w.WriteHeader(400)
-		fmt.Fprint(w, err)
+		fmt.Fprint(w, fmt.Errorf("length: %w", err))
 		return
 	}
-	response, err := s.poService.ListPurchaseOrders(ctx, email, start, length)
+	response, err := s.poService.ListPurchaseOrders(ctx, email, 0, length)
 	if err != nil {
 		w.WriteHeader(400)
 		fmt.Fprint(w, err)
@@ -59,7 +47,6 @@ func (s *poAPIServer) ListPurchaseOrders(w http.ResponseWriter, r *http.Request)
 	resp := ListPOsResponse{
 		Status:          200,
 		Data:            response.POs,
-		Draw:            draw,
 		RecordsTotal:    response.Total,
 		RecordsFiltered: response.Total,
 	}

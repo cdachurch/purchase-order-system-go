@@ -21,7 +21,8 @@ func (p *poRepository) ListPurchaseOrders(ctx context.Context, email string, sta
 		return nil, fmt.Errorf("error getting purchaseOrders for individual: %v", err)
 	}
 	resp := &pos.PagedResponse{
-		POs: purchaseOrders,
+		POs:   purchaseOrders,
+		Total: len(purchaseOrders),
 	}
 
 	return resp, nil
