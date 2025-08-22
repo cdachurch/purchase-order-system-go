@@ -25,7 +25,7 @@ func main() {
 		log.Printf("Defaulting to port %s", port)
 	}
 
-	dsClient, err := datastore.NewClient(ctx, appID())
+	dsClient, err := datastore.NewClient(ctx, appID(), datastore.WithIgnoreFieldMismatch())
 	if err != nil {
 		log.Printf("Error making datastore client: %v", err)
 		return
