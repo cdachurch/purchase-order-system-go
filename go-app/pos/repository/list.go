@@ -4,17 +4,12 @@ import (
 	"context"
 	"fmt"
 	"po/go-app/pos"
-	"strings"
-
-	"cloud.google.com/go/datastore"
 )
 
+// ListPurchaseOrders retrieves a paginated list of purchase orders for the given email.
+// It's used on the "list POs" page that most people use and never actually gets paginated :)
 func (p *poRepository) ListPurchaseOrders(ctx context.Context, email string, start, length int) (*pos.PagedResponse, error) {
-	q := datastore.NewQuery("PurchaseOrder").Limit(length).Offset(start).Order("-pretty_po_id")
-	if email != "" {
-		tokens := strings.Split(email, "@")
-		q = q.Filter("purchaser =", tokens[0])
-	}
+	q := buildPOQuery(email)
 
 	purchaseOrders, err := p.getPOsFromQuery(ctx, q)
 	if err != nil {

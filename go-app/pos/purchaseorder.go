@@ -1,11 +1,12 @@
 package pos
 
 import (
+	"slices"
 	"time"
 )
 
 var (
-	// TODO: This should come from an env var someday (then we can change these without deploying code)
+	// TODO: These should come from an env var someday (then we can change these without deploying code)
 	usersThatCanSeeAllPOs = []string{
 		"smyhre@cdac.ca",
 		// "gholtslander@cdac.ca",
@@ -14,19 +15,30 @@ var (
 		"dwiebe@cdac.ca",
 		// "test@example.com",
 	}
+
+	usersThatCanSeeFacilitiesPOs = []string{
+		"aepp@cdac.ca",
+		"kblatz@cdac.ca",
+	}
 )
 
 // ShouldAttachEmail will be true if the email passed in is not an admin's email.
 func ShouldAttachEmail(email string) bool {
 	var userIsAdmin bool
-	for _, name := range usersThatCanSeeAllPOs {
-		if name == email {
-			userIsAdmin = true
-			break
-		}
+	if slices.Contains(usersThatCanSeeAllPOs, email) {
+		userIsAdmin = true
 	}
 
 	return email != "" && !userIsAdmin
+}
+
+func FacilitiesUser(email string) bool {
+	var facilitiesUser bool
+	if slices.Contains(usersThatCanSeeFacilitiesPOs, email) {
+		facilitiesUser = true
+	}
+
+	return email != "" && facilitiesUser
 }
 
 // PurchaseOrder represents a purchase order in the system.
@@ -52,6 +64,7 @@ type PurchaseOrder struct {
 	CreatedStr     string    `json:"created_date"`
 	Deleted        time.Time `datastore:"deleted"`
 	DeletedStr     string    `json:"deleted_date"`
+	ForFacilities  bool      `json:"for_facilities" datastore:"for_facilities"`
 }
 
 // CalculateIsAddressed will just set IsAddressed to what it already is if it is set, or it will set it by computation

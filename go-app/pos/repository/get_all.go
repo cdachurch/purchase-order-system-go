@@ -3,19 +3,13 @@ package porepository
 import (
 	"context"
 	"log"
-	"strings"
 
 	"po/go-app/pos"
-
-	"cloud.google.com/go/datastore"
 )
 
+// GetPurchaseOrders returns allllll of the POs and can be slow.
 func (p *poRepository) GetPurchaseOrders(ctx context.Context, email string) ([]pos.PurchaseOrder, error) {
-	q := datastore.NewQuery("PurchaseOrder")
-	if email != "" {
-		tokens := strings.Split(email, "@")
-		q = q.Filter("purchaser =", tokens[0])
-	}
+	q := buildPOQuery(email)
 
 	log.Printf("About to get POs")
 	purchaseOrders, err := p.getPOsFromQuery(ctx, q)
